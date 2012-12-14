@@ -1,0 +1,42 @@
+function ejecuta(){
+    ocultaPantalla();
+
+    $('#resultad').html('<h3> Su peticion se esta procesando...</h3>');
+
+    var calculoSimilitud=document.getElementById('calculoSimilitud').value
+    var kVecinos=document.getElementById('kVecinos').value
+    var algoritmoPrediccion=document.getElementById('algoritmoPrediccion').value;
+    var action='calculoVecino';
+    var Nvalores=document.getElementById('Nvalores').value;
+    var conexion=document.getElementById('conexion').value;
+    $.post('index.php',{action:action,kVecinos:kVecinos,calculoSimilitud:calculoSimilitud,
+        algoritmoPrediccion:algoritmoPrediccion,Nvalores:Nvalores, conexion:conexion  }, 
+        function(data){			
+        
+        var aux2=data.split('||')
+        var con=0;
+        $('#resultad').html('');
+        //alert(aux2.length)
+        while(con<aux2.length-1){
+            var aux=aux2[con].split('####');
+            $('#resultad').append('- <b>Tiempo de ejecucion del algoritmo Similitud: '+calculoSimilitud+'</b> '+aux[0]+'<br><br> - <b>Tiempo de ejecucion del algoritmo de prediccion: '+algoritmoPrediccion+'</b> '+aux[1]+'<br><br>- <b>Modelo intermedio</b>:<br>'+aux[2]+'<br><br><b> - Media de MAE (Error Absoluto Medio):</b><br>' +aux[3]+'<br><br>');
+            con++; 
+        }
+        muestraPantalla();
+    })
+}
+function ocultaPantalla(){
+    document.body.style.cursor = 'wait';
+    document.getElementById('capaBloqueoApp').style.display="block";	
+}
+function muestraPantalla(){
+    document.body.style.cursor = 'default';
+    document.getElementById('capaBloqueoApp').style.display="none";
+}
+function apareceValoresN(){
+    document.getElementById('Nvalores').style.display="none";
+    if(document.getElementById('algoritmoPrediccion').value=='IA'){
+        document.getElementById('Nvalores').style.display="block";
+    }
+}
+
