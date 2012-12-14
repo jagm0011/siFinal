@@ -18,6 +18,51 @@ class controlador{
             return $this->modelo->loguearUsuario($email, $pass);
             
         }
+        public function initSistema(){
+            //parametros escogidos para el sistema
+            //algoritmo similitudes "Similitud del coseno"
+            $PCC=0;
+            $SC=1;
+           //algoritmo de prediccion "Weighted Sum"
+            $IA=0;
+            $WS=1;
+            //Nvalores no usada al elegir WS
+            $Nvalores=0;
+            //numero de similitudes vecinas = 10
+            $K=10;
+            
+            $desde=1944;
+            $cuantos=1944;
+            $fin=1944;
+            $this->modelo->cargaRatings($desde, $cuantos, $fin);
+            $ratings=$this->modelo->dameRatings();	
+            //y un vector que es un indice con las posiciones a los item en el vector $ratings	
+            $indiceItem=$this->modelo->dameIndiceRatingIdItem();
+            $indiceUser=$this->modelo->dameIndiceRatingIdUser();
+             //instanciamos la clase KNN que es donde se van a realizar todos los calculos
+            $this->KNN=new KNN($ratings,$indiceItem,$indiceUser,$K, $PCC, $SC, $IA, $WS,$Nvalores);
+
+            //variable usuada para recoger el modelo de la BD
+            $nombreModeloIntermedio='modelo_'.$K.'_SC_'.$desde.'_'.$cuantos.'_'.$fin;
+            $tablaModeloIntermedio=$this->modelo->getVariable($nombreModeloIntermedio);
+            if($tablaModeloIntermedio!=null) {
+                
+                $tablaModeloIntermedio=  unserialize($tablaModeloIntermedio);
+                //sacamos los K vecinos que nos interesan
+                //$tablaModeloIntermedio=$this->dameLosKMejoresParaCadaItem($K, $tablaModeloIntermedio);
+                //lo introduce como modelo actual
+                $this->KNN->ajustaModeloIntermedio($tablaModeloIntermedio);                     
+           }else{
+               $this->KNN->calculoVecinos($desde, $cuantos, $fin);
+               $tablaModeloIntermedio=$this->KNN->dameModeloIntermedio();
+                //lo serializo el resultado para almacenarlo en la BD y tner el modelo guardado
+               $tablaModeloIntermedio=serialize($tablaModeloIntermedio);
+               $this->modelo->setVariable($nombreModeloIntermedio, $tablaModeloIntermedio);
+           }
+           
+           
+           
+        }
 	//funcion que ejecuta el algoritmo con los parametros dados.
 	public function initPruebas($K,$calculoSimilitud, $algPredicion,$Nvalores ){
             //cargamos y recogemos las valoraciones
